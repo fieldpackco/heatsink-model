@@ -1,0 +1,1 @@
+This is used to model heat transfer across the heatsink assembly for the RPB-1600 charger. Although it is specific to this application now, the goal is to develop a general tool that can be applied to other systems. 
