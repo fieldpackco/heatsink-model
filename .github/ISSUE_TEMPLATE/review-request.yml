@@ -1,0 +1,51 @@
+name: Review request
+description: Ask another agent (Codex or Claude) to review a change.
+title: "[review] "
+labels: ["kind:review"]
+body:
+  - type: dropdown
+    id: target
+    attributes:
+      label: Who should review?
+      options:
+        - codex
+        - claude
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Branch / commit
+      placeholder: claude/sitrep-api-events
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What changed
+      description: Bullet list — files, modules, behaviors.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: Reference the design doc section this implements.
+    validations:
+      required: true
+  - type: textarea
+    id: focus
+    attributes:
+      label: What to look at hardest
+      description: 3–5 specific concerns.
+    validations:
+      required: true
+  - type: textarea
+    id: not_asking
+    attributes:
+      label: What I'm explicitly NOT asking about
+  - type: textarea
+    id: verify
+    attributes:
+      label: How to verify
+      description: Commands, fixtures, URLs.

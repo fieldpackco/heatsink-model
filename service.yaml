@@ -1,0 +1,14 @@
+schema_version: "1.0"
+name: heatsink-model
+description: |
+  Jupyter notebook(s) and supporting files modeling thermal behavior, likely for battery / power-electronics heatsinking. Potentially safety-relevant for understanding pack thermal limits.
+kind: docs
+status: active
+visibility: internal
+owner: runchal
+language: docs-derived
+repo: https://github.com/fieldpackco/heatsink-model
+depends_on: []
+tags:
+  - oliver-preservation
+onboarding: true

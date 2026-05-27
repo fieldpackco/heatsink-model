@@ -1,0 +1,16 @@
+# Multi-agent autopilot — per-machine state, not canonical
+.agent-state/autopilot/
+.agent-state/autopilot.log
+.claude/pending-*.log
+.claude/watch-*.log
+
+# Editor / OS noise
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Env files
+.env
+.env.local
+.env.*.local

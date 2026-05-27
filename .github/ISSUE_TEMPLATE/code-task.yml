@@ -1,0 +1,46 @@
+name: Code task
+description: A unit of implementation work for an agent to pick up.
+title: "[task] "
+labels: ["kind:task"]
+body:
+  - type: dropdown
+    id: target
+    attributes:
+      label: Who should do this?
+      options:
+        - claude
+        - codex
+        - human
+    validations:
+      required: true
+  - type: input
+    id: repo
+    attributes:
+      label: Target repo
+      placeholder: sitrep-api | sitrep-ops | sitrep-field | sitrep-cli | sitrep (this one)
+    validations:
+      required: true
+  - type: input
+    id: design_section
+    attributes:
+      label: Design doc section
+      description: Which part of docs/plans/2026-05-19-sitrep-design.md does this implement?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What "done" looks like, in one paragraph.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints / non-goals
+      description: Anything explicitly out of scope.
+  - type: textarea
+    id: branch
+    attributes:
+      label: Suggested branch name
+      placeholder: claude/sitrep-api-events
