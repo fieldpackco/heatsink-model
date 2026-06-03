@@ -1,0 +1,8 @@
+# Fieldpack safety profile declaration
+#
+# Allowed values:
+#   software        — pure software / web service, no physical or safety-adjacent surface
+#   safety-adjacent — touches hardware control surfaces or data feeding hardware decisions,
+#                     but is not the final actuator / mover / energy gate
+#   hardware        — controls physical actuators, energy paths, motion, or safety-critical I/O
+safety_profile: safety-adjacent
