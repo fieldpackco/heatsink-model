@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # autopilot.sh
-# fswatch-driven autonomous review loop for the sitrep multi-agent workflow.
+# fswatch-driven autonomous review loop for the Fieldpack multi-agent workflow.
 #
 # Watches docs/reviews/ and dispatches the OTHER agent (codex or claude) in
 # --full-auto mode the moment a request/response artifact lands. Local files
@@ -34,6 +34,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
+REPO_NAME="$(basename "$REPO_ROOT")"
 WATCH_DIR="$REPO_ROOT/docs/reviews"
 STATE_DIR="$REPO_ROOT/.agent-state/autopilot"
 LOG_FILE="$REPO_ROOT/.agent-state/autopilot.log"
@@ -126,9 +127,9 @@ dispatch_codex() {
 
   local prompt
   prompt=$(cat <<EOF
-You are Codex running in --full-auto autopilot mode inside the sitrep workspace.
+You are Codex running in --full-auto autopilot mode inside the ${REPO_NAME} workspace (Fieldpack member repo).
 
-Before doing anything else: read AGENTS.md and docs/multi-agent-workflow.md.
+Before doing anything else: read .fieldpack/AGENT_RULES.md and AGENTS.md.
 
 A new artifact from Claude is waiting for you:
   $artifact
@@ -171,9 +172,9 @@ dispatch_claude() {
 
   local prompt
   prompt=$(cat <<EOF
-You are Claude running in autopilot mode inside the sitrep workspace.
+You are Claude running in autopilot mode inside the ${REPO_NAME} workspace (Fieldpack member repo).
 
-Before doing anything else: read AGENTS.md and docs/multi-agent-workflow.md.
+Before doing anything else: read .fieldpack/AGENT_RULES.md and AGENTS.md.
 
 A new artifact from Codex is waiting for you:
   $artifact
@@ -213,7 +214,7 @@ route() {
     case "$base" in
       *-human-*|*-note.md|*-handoff.md|*-resolution.md)
         log "no-dispatch (informational): $base"
-        notify "sitrep autopilot" "informational: $base"
+        notify "${REPO_NAME} autopilot" "informational: $base"
         ;;
       *) log "no-dispatch (unrecognized): $base" ;;
     esac
@@ -252,7 +253,7 @@ trap cleanup_pidfile EXIT
 trap 'exit' INT TERM
 
 log "autopilot watching $WATCH_DIR (PID $$)"
-notify "sitrep autopilot" "started (PID $$)"
+notify "${REPO_NAME} autopilot" "started (PID $$)"
 
 fswatch -0 --event Created --event Renamed --event Updated "$WATCH_DIR" \
   | while IFS= read -r -d '' path; do
