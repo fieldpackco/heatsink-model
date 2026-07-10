@@ -13,6 +13,7 @@ Before doing any work in this repo:
 - One branch per task: `<agent>/<short-name>`.
 - No invented APIs, columns, or fields. If undefined, raise a `kind:decision`.
 - No clicking in admin UIs.
+- User-facing guides/instructions/tutorials must be rendered or programmatic artifacts, not loose Markdown files under `projects/guides/` or `guides/`.
 - **Verify before claiming complete.** Run tests, report concrete results.
 - Don't bypass safety checks (`--no-verify`, `--no-gpg-sign`, `git reset --hard`, force-push) without explicit human authorization.
 
@@ -28,5 +29,7 @@ As part of finishing any non-trivial task:
 ## You must not edit
 
 - `.fieldpack/` — synced from Shopkeep. Local edits are overwritten.
+- Run `.fieldpack/scripts/validate.sh` for the repo compliance gate. It uses the
+  vendored validator and must not download packages or require registry access.
 
 When the charter and a local `AGENTS.md` conflict, the charter wins.
