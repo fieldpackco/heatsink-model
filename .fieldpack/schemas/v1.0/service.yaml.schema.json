@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dev.fieldpack.co/schemas/v1.0/service.yaml.schema.json",
+  "title": "Fieldpack service.yaml v1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "description", "kind", "status", "visibility", "owner", "language", "repo"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "name": { "type": "string", "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$", "minLength": 2, "maxLength": 64 },
+    "description": { "type": "string", "minLength": 10, "maxLength": 280 },
+    "kind": { "enum": ["service", "tool", "hardware", "docs"] },
+    "status": { "enum": ["active", "wip", "archived", "deprecated"] },
+    "visibility": { "enum": ["public", "internal"] },
+    "owner": { "type": "string", "pattern": "^[a-zA-Z0-9-]+$" },
+    "language": { "type": "string" },
+    "stack": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "deploy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target": { "enum": ["netlify", "vercel", "cloudflare", "none"] },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "repo": { "type": "string", "format": "uri", "pattern": "^https://github.com/" },
+    "docs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "homepage": { "type": "string" },
+        "architecture": { "type": "string" },
+        "llms": { "type": "string" }
+      }
+    },
+    "depends_on": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9-]*[a-z0-9]$" },
+      "uniqueItems": true
+    },
+    "tags": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+  }
+}

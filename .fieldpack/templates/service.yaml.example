@@ -1,0 +1,29 @@
+# Annotated example. Copy to repo root as `service.yaml` and edit.
+# Validates against .fieldpack/schemas/v1.0/service.yaml.schema.json.
+
+schema_version: "1.0"
+name: example-service        # kebab-case, unique within fieldpack
+description: |
+  One paragraph. What this service does. What it's for. Who uses it.
+kind: service                # service | tool | hardware | docs
+status: active               # active | wip | archived | deprecated
+visibility: internal         # public | internal
+owner: runchal               # github username
+language: typescript
+stack:
+  - next.js
+  - supabase
+deploy:
+  target: netlify            # netlify | vercel | cloudflare | none
+  url: https://example-service.netlify.app
+repo: https://github.com/fieldpackco/example-service
+docs:
+  homepage: ./README.md
+  architecture: ./docs/architecture.md
+  llms: ./docs/llms.md
+depends_on:                  # other fieldpack services this one calls
+  - supabase
+tags:
+  - api
+# onboarding state is NOT declared here. It is set by portal.yaml in
+# fieldpackco/Shopkeep — the sole source of truth for repo state.

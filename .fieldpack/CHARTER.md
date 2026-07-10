@@ -17,7 +17,8 @@ A repo's relationship to the charter is one of three explicit states:
 
 A repo not in any of these states is simply not part of Shopkeep.
 
-A repo cannot move from `onboarding` to `strict` until every §6 build-fail check passes on its default branch.
+A candidate or onboarding repo cannot enter `strict` until every §6
+build-fail check passes on its default branch.
 
 ## How this document is changed
 
@@ -30,7 +31,11 @@ A repo cannot move from `onboarding` to `strict` until every §6 build-fail chec
 
 `sitrep` is the **planned** reference repo. When this charter is ambiguous, what `sitrep@v1.0` (pinned tag) does will be the answer once that tag exists.
 
-**Adoption prerequisite:** before this charter is enforced as v1.0, `fieldpackco/sitrep` must conform to the charter and cut a `v1.0` tag. Until that tag exists, the charter operates in `pre-enforcement` mode: all §6 checks run in report-only form and no repo can be in `strict` state.
+Strict enforcement is available to any repo whose default branch passes every
+§6 build-fail check. Before the `sitrep@v1.0` exemplar exists, strict repos are
+held to the explicit Charter and schema requirements; no behavior may be
+inferred from Sitrep to fill an ambiguity. Ambiguous requirements remain
+report-only until the exemplar or a reviewed Charter decision resolves them.
 
 Once cut, sitrep@v1.0 sets the standard for:
 - API contract style (versioning, error model, request/response shape).
@@ -73,12 +78,13 @@ This list mirrors the canonical always-required set in the Shopkeep design spec;
 | `docs/llms.md` | Dense LLM-tier doc. |
 | `docs/prd/` (directory; `.gitkeep` allowed) | One file per non-trivial feature or major decision. |
 | `docs/decisions/` (directory; `.gitkeep` allowed) | ADRs (Michael Nygard format) for non-trivial choices. |
-| `.fieldpack/version` | The `.fieldpack/` standard version this repo is pinned to (e.g. `1.0`). |
+| `.fieldpack/version` | The `.fieldpack/` standard version this repo is pinned to (current: `1.1`). |
 | `.fieldpack/CHARTER.md` | This file, synced from Shopkeep. |
 | `.fieldpack/AGENT_RULES.md` | Synced from Shopkeep. |
 | `.fieldpack/schemas/<version>/service.yaml.schema.json` | Mirror of the versioned schema(s) this repo's `service.yaml` declares. |
 | `.fieldpack/templates/` (directory) | Synced templates. |
 | `.fieldpack/scripts/validate.sh` | Local + CI validator, synced from Shopkeep. |
+| `.fieldpack/bin/fieldpack-validate.mjs` | Validate-only Node.js bundle used by `validate.sh`; runs offline without a package registry. Required from standard `1.1` onward. |
 
 ### PRD rule
 
@@ -98,6 +104,10 @@ A new **non-trivial** feature must have a PRD merged in `docs/prd/` before code 
 ### ADR rule
 
 Any non-trivial technical decision gets an ADR in `docs/decisions/`. Format: Michael Nygard's classic ADR (Context / Decision / Status / Consequences), ~200 words.
+
+### Rendered guide rule
+
+User-facing guides, instructions, and tutorial deliverables must ship as rendered or programmatic artifacts (for example HTML, app routes, generated PDFs, or source-backed UI), not as loose Markdown files under guide delivery paths such as `projects/guides/` or `guides/`. Markdown remains valid for required docs, PRDs, ADRs, source notes, and internal LLM context under the documented paths above.
 
 ### `STATUS.md` rule
 
@@ -248,7 +258,7 @@ The complete mechanical-rigor floor every `strict` repo must pass on every PR:
 | **`test`** (unit) | All | Pure-function regressions per §3 |
 | **`test:integration`** | Services | Cross-boundary behavior per §3 |
 | **`test:e2e`** | Services with user flows | User flows per PRD per §3 |
-| **`fieldpack validate`** | All | Required Charter files present, schema valid, STATUS.md fresh. **Shipped** — `fieldpack validate` exists in the CLI today and is an enforceable gate now. |
+| **`fieldpack validate`** | All | Required Charter files present, schema valid, STATUS.md fresh, no loose Markdown guide deliverables. **Shipped** — `fieldpack validate` exists in the CLI today and is an enforceable gate now. |
 | **`fieldpack policy-check`** | All | Type-strictness §5a compliance, CLI shape §5b compliance for applicable repos. **Report-only until shipped** — this command does not yet exist in the Shopkeep CLI. It is a planned gate; it cannot fail a build until it ships in a declared `.fieldpack` standard version with an enforceable contract. Until then, §5a/§5b are enforced via the per-language `typecheck`/`lint` rows above, not via `policy-check`. |
 | **secret-scan** | All | Hardcoded credentials, API keys, certificates |
 | **license-scan** | Repos that bundle dependencies | Disallowed licenses in the dependency tree |
@@ -276,6 +286,7 @@ For each opted-in repo, on every Shopkeep build. "Failure mode" applies to **str
 | `depends_on` entries reference known services | Build fails |
 | `CLAUDE.md` points to `AGENTS.md` or `.fieldpack/AGENT_RULES.md`; `AGENTS.md` references this charter | Build fails |
 | `.fieldpack/version` matches one of the versions Shopkeep currently supports | Build fails |
+| No loose Markdown guide deliverables under `projects/guides/` or `guides/`; guides must be rendered/programmatic artifacts | Build fails |
 | Default branch CI is green | Repo marked non-compliant, excluded from public surfaces |
 | Tests directory exists per blessed structure | Repo marked non-compliant, excluded from public surfaces |
 | Strict-mode typecheck + lint pass on default branch (§5a) | Build fails |
