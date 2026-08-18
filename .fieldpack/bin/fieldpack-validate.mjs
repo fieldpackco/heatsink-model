@@ -14716,20 +14716,24 @@ function isMarkdownGuidePath(relativePath) {
   return [...GUIDE_MARKDOWN_DIRS].some((dir) => normalized.startsWith(`${dir}/`));
 }
 async function listFiles(root, base = root) {
-  let entries;
-  try {
-    entries = await fs.readdir(root, { withFileTypes: true });
-  } catch {
-    return [];
-  }
   const files = [];
-  for (const entry of entries) {
-    if (entry.name === ".git" || entry.name === "node_modules") continue;
-    const fullPath = path.join(root, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...await listFiles(fullPath, base));
-    } else if (entry.isFile()) {
-      files.push(toPosixPath(path.relative(base, fullPath)));
+  const queue = [root];
+  while (queue.length > 0) {
+    const dir = queue.pop();
+    let entries;
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      if (entry.name === ".git" || entry.name === "node_modules") continue;
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        queue.push(fullPath);
+      } else if (entry.isFile()) {
+        files.push(toPosixPath(path.relative(base, fullPath)));
+      }
     }
   }
   return files.sort();
@@ -14827,13 +14831,17 @@ async function checkCompliance(repoRoot, ctx) {
       });
     }
   }
-  for (const file of await listFiles(repoRoot)) {
-    if (isMarkdownGuidePath(file)) {
-      failures.push({
-        code: "loose-guide-markdown",
-        path: file,
-        detail: "guide deliverables must be rendered/programmatic artifacts; keep planning notes under docs/prd or docs/decisions"
-      });
+  for (const guideDir of GUIDE_MARKDOWN_DIRS) {
+    const abs = path.join(repoRoot, guideDir);
+    for (const relative of await listFiles(abs, repoRoot)) {
+      const file = toPosixPath(relative);
+      if (isMarkdownGuidePath(file)) {
+        failures.push({
+          code: "loose-guide-markdown",
+          path: file,
+          detail: "guide deliverables must be rendered/programmatic artifacts; keep planning notes under docs/prd or docs/decisions"
+        });
+      }
     }
   }
   return {
