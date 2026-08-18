@@ -24,26 +24,48 @@ build-fail check passes on its default branch.
 
 - The canonical copy lives in `fieldpackco/Shopkeep`.
 - Changes go through a PR on Shopkeep with Codex review.
-- When merged, Shopkeep's sync GitHub Action opens PRs against every included repo updating their `.fieldpack/CHARTER.md`.
+- **Propagation is pull-based and manual.** Each repo runs `fieldpack sync` to copy `.fieldpack/` from the canonical source into itself. Merging a change on Shopkeep updates the canonical copy and nothing else — no repo learns of it until someone syncs that repo.
 - **Repos cannot edit their local copy.** Local edits are overwritten on the next sync. To propose a change, open a PR on Shopkeep.
+
+> **A merged Charter change is not a deployed Charter change.** An earlier version of this
+> document claimed a sync GitHub Action opened PRs against every included repo on merge. No such
+> workflow exists — `.github/workflows/` holds only `ci.yml`. Corrected 2026-08-13 rather than
+> left standing, because a governing document that misdescribes its own propagation is the
+> worst place for that error to live: every reader downstream assumes a reach it does not have.
+>
+> Until a push mechanism exists, rolling a change out fleet-wide means running `fieldpack sync`
+> in each repo and committing the result there. Repo count and sync state are not tracked
+> anywhere, so there is no way to answer "which repos are on the current Charter" without
+> checking each one.
 
 ## The exemplar
 
-`sitrep` is the **planned** reference repo. When this charter is ambiguous, what `sitrep@v1.0` (pinned tag) does will be the answer once that tag exists.
+**There is no exemplar repo.** This Charter is self-contained: when it is
+ambiguous, the answer is an explicit amendment, not an inferred precedent.
+
+Earlier versions named `sitrep@v1.0` as a planned reference whose behavior would
+resolve ambiguity once that tag existed. Sitrep has been deprecated and the tag
+will never be cut, so that pointer is removed rather than left dangling. No
+behavior may be inferred from any repository to fill a gap in this document.
 
 Strict enforcement is available to any repo whose default branch passes every
-§6 build-fail check. Before the `sitrep@v1.0` exemplar exists, strict repos are
-held to the explicit Charter and schema requirements; no behavior may be
-inferred from Sitrep to fill an ambiguity. Ambiguous requirements remain
-report-only until the exemplar or a reviewed Charter decision resolves them.
+§6 build-fail check. Strict repos are held to the explicit Charter and schema
+requirements. An ambiguous requirement stays **report-only** until a reviewed
+Charter decision resolves it — a repo is never failed for a rule this document
+does not actually state.
 
-Once cut, sitrep@v1.0 sets the standard for:
-- API contract style (versioning, error model, request/response shape).
-- Documentation depth (architecture.md, PRDs, ADRs).
-- Test coverage (unit + integration + end-to-end + user flows).
-- Repo hygiene (structure, conventions, CI, secrets handling).
+Resolving an ambiguity means one of two things:
 
-When the pinned tag bumps, that is a deliberate charter-level decision; it requires a PR on Shopkeep with Codex review.
+- a **Charter amendment**, by PR on Shopkeep with Codex review, which then syncs
+  to every opted-in repo; or
+- a **domain exception** granted by the Priest for that domain — scoped,
+  time-boxed, and recorded as an ADR naming the rule, the scope, the expiry, and
+  the reason. An expired exception is a compliance finding, not a silent
+  renewal. No exception may cover a physical-effect path or bypass Amit's gate
+  over synthesis, critical, and hardware decisions.
+
+Should a reference repo be designated later, that is a deliberate
+charter-level decision requiring a PR on Shopkeep with Codex review.
 
 ## 1. Architecture (the Bezos rule, generalized)
 
@@ -164,11 +186,52 @@ If a repo needs a different stack, it requires an ADR in `docs/decisions/` expla
 - **File-based handoffs** via `docs/reviews/` using the `<topic>-<author>-<role>.md` convention.
 - **Codex auto-reviews at every gate.** Completing reviewable work includes filing the review request. Gates: spec, plan, finished subagent task, pre-merge. Claude reviews Codex's work for the inverse case.
 - **One branch per task.** Name: `<agent>/<short-name>`.
-- **No invented APIs, columns, or fields.** If the design does not specify it, raise a `kind:decision` issue or write a `*-decision.md` *before* adding.
+- **No invented APIs, columns, or fields.** If the design does not specify it, file a `kind:decision` issue in Linear (§4.2) or write a `*-decision.md` *before* adding.
 - **No clicking in admin UIs.** All infrastructure operations run via CLI/API. Find the CLI command before recommending a click-through.
 - **Verify before claiming complete.** Run the tests. Hit the endpoint. Read the output. Report what you observed, not what you expected.
 - **Leave a handoff note** before ending any session with open work.
 - **Do not bypass safety checks** (`--no-verify`, `--no-gpg-sign`, `git reset --hard`, `git push --force`) without explicit human authorization.
+
+### 4.1 Crossing a repo boundary
+
+`docs/reviews/` handoffs coordinate agents **inside** one repo. They do not reach another repo, and no agent reads another repo's review files. When work touches a boundary, the rules below apply.
+
+- **Report outward, do not reach in.** When you find a defect, a gap, or a needed change in a repo you are not working in, file it in Linear (§4.2) labelled with the owning repo: `kind:blocker` if it blocks you, `kind:decision` if it needs a call someone else must make. State what you observed, what you expected, and the repo and commit you were working in. The owning repo owns the fix.
+- **Never work around it silently.** A local workaround for someone else's defect leaves the defect in place, undocumented, and now load-bearing. If you must proceed to stay unblocked, the issue goes up first and your workaround cites it.
+- **Never fix a shared contract by editing your own copy of it.** A contract is shared precisely so that both sides cannot disagree. Patching your side to match your expectation reintroduces the divergence the contract exists to prevent, and it does so invisibly — both repos build, and the disagreement surfaces later as wrong values rather than a failed build.
+- **Changing a shared contract is the owning repo's job**, in this order: the owning repo changes it, regenerates any fixtures or vectors that pin it, and versions the change; consumers then move to the new version deliberately. A consumer never front-runs that sequence.
+- **If you cannot file** — no access, no network, repo unknown — say so plainly and stop at that boundary. Do not substitute a guess about what the other side intended.
+
+Mechanical agreement is preferred over reporting wherever it is available. A shared fixture that both sides test against turns a boundary disagreement into a failing test rather than a message someone has to notice, read, and act on. Reporting is for what fixtures cannot catch: a missing field, a wrong assumption, a design that needs a decision.
+
+### 4.2 Where work is tracked
+
+**Linear is the tracker. GitHub is where code is executed.** Each has one job, and state flows in one direction only.
+
+- **File work in Linear**, not in a repo: bugs, tasks, decisions to be made, tech debt, anything not yet done. One workspace covers the whole fleet, so a cross-repo report has somewhere to go that a per-repo tracker cannot provide.
+- **Label every issue with its owning repo.** An issue nobody can route is an issue nobody fixes.
+- **Reference the Linear issue in the branch name and the PR body.** The PR closes the issue on merge; nothing marks an issue done by hand while its work is unmerged.
+- **State flows from execution to intent, never the reverse.** A merged PR closes a Linear issue. A Linear edit never changes code, a branch, or a repo's state.
+
+Do **not** move these into the tracker — they are versioned with the code they explain, and a decision separated from its codebase loses the thing that made it worth writing:
+
+- `docs/decisions/` (ADRs) and `docs/prd/` — decisions already made.
+- `docs/reviews/` — in-repo agent handoffs.
+- `STATUS.md` — what this repo shipped and what blocks it *now*.
+
+The test is tense. **Work not yet done goes to Linear. A decision already made stays in the repo.** `STATUS.md` keeps "Now" and "Recently shipped"; its "Up next" belongs in Linear.
+
+### 4.3 Autonomous work
+
+Agents file, dispatch, and merge on their own. Continuous development is the point; a loop that pauses for approval at every step is not a loop. Autonomy is bounded rather than approved — the limits below are **caps and kill switches, not gates**, so work proceeds without a human in the path and stops hard at a known edge.
+
+- **An agent may file** an issue in Linear, and **may dispatch** by assigning one to an agent identity. It may not close an issue except by merging the PR that resolves it, because closing without merging asserts an outcome that did not happen.
+- **Merge is gated on `safety_profile`, not on a human.** `software` and `safety-adjacent` repos auto-merge on green CI. **`hardware` repos require human merge** — §3 already requires hardware-in-the-loop testing and manual sign-off for firmware, and a physical-effect path is the one place a green check cannot stand in for a bench.
+- **Green CI must mean something.** Auto-merge is only honest where the tests actually cover the change. A repo whose suite cannot exercise what changed must not auto-merge on it; say so and leave the PR open rather than let a passing check that proves nothing act as a merge authority.
+- **Bounds that stop a runaway**, all of which exist rather than being requested per-task: the autopilot parallel and host-lock caps, the budget caps of §5b, and a documented kill switch that halts dispatch without halting in-flight work.
+- **Every autonomous action is attributable.** A dispatched session records the issue that triggered it; a merged PR records the session that produced it. Autonomy without a trail is indistinguishable from an accident.
+
+This is a deliberate trade made while no unit is deployed. Revisit it when hardware is in the field, where a bad merge stops being a revert and starts being a truck.
 
 ## 5. Security & secrets
 
