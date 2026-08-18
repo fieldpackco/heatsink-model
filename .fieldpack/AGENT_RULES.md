@@ -28,6 +28,13 @@ Found a defect or a needed change in a repo you are **not** working in?
 - **Never work around it silently.** If you must proceed, file first and cite the issue.
 - **Never fix a shared contract by editing your own copy.** Both repos would still build and
   the disagreement would surface later as wrong values instead of a failed build.
+- **Reaching in includes the filesystem.** Every checkout on this machine is writable; that
+  does not make it yours. Never edit, commit, or tag in another repo's working tree — even a
+  correct change lands as a race, and an allocation (a family value, a presence bit, an ID)
+  can be handed out twice with two meanings.
+- **Read across boundaries freely; do not treat those files as a channel.** Reading another
+  repo is how you understand what you integrate with. Leaving a request somewhere the other
+  side has no reason to look is not reporting it.
 - **The owning repo changes a contract first**, regenerates whatever fixtures pin it, and
   versions it. Consumers move to the new version afterwards, deliberately.
 - **Can't file?** Say so and stop at the boundary. Do not guess what the other side intended.
