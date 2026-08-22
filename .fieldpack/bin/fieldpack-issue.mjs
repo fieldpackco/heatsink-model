@@ -117,7 +117,7 @@ async function issueFileCommand(args2, deps) {
       errorOutput(`issue file: no team with key "${teamKey}".`);
       return 1;
     }
-    const labelData = await deps.api("{ issueLabels { nodes { id name } } }", {});
+    const labelData = await deps.api("{ issueLabels(first: 250) { nodes { id name } } }", {});
     const labels = new Map(labelData.data.issueLabels.nodes.map((l) => [l.name, l.id]));
     const labelIds = resolveLabelIds(labels, args2.repo, args2.kind, args2.provenance?.repo);
     const body = args2.body + (args2.provenance ? provenanceFooter(args2.provenance) : "");
